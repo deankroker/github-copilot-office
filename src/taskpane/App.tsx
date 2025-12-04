@@ -4,12 +4,12 @@ import {
   FluentProvider,
   webLightTheme,
   webDarkTheme,
-  Textarea,
   Button,
   makeStyles,
   Tooltip,
 } from "@fluentui/react-components";
-import { Send24Regular, Compose24Regular } from "@fluentui/react-icons";
+import { Compose24Regular } from "@fluentui/react-icons";
+import { ChatInput } from "./ChatInput";
 
 interface Message {
   id: string;
@@ -46,15 +46,6 @@ const useStyles = makeStyles({
     borderBottom: "1px solid #3b3a39",
     backgroundColor: "#252423",
   },
-  iconButton: {
-    width: "32px",
-    height: "32px",
-    minWidth: "32px",
-    padding: "0",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   clearButton: {
     backgroundColor: "#0078d4",
     color: "white",
@@ -86,43 +77,6 @@ const useStyles = makeStyles({
     height: "100%",
     fontSize: "20px",
     fontWeight: "300",
-  },
-  inputContainer: {
-    margin: "16px",
-    padding: "4px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "2px",
-    borderRadius: "6px",
-  },
-  inputContainerLight: {
-    backgroundColor: "white",
-    border: "1px solid #d1d1d1",
-  },
-  inputContainerDark: {
-    backgroundColor: "#252423",
-    border: "1px solid #3b3a39",
-  },
-  input: {
-    flex: 1,
-    padding: 0,
-    borderRadius: "0",
-    border: "none !important",
-    backgroundColor: "transparent",
-    outline: "none !important",
-    boxShadow: "none !important",
-    "::after": {
-      display: "none !important",
-    },
-  },
-  sendButton: {
-    width: "40px",
-    height: "40px",
-    minWidth: "40px",
-    padding: "0",
-    alignSelf: "flex-end",
-    backgroundColor: "transparent",
-    border: "none",
   },
   messageUser: {
     alignSelf: "flex-end",
@@ -159,7 +113,6 @@ export const App: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -170,9 +123,6 @@ export const App: React.FC = () => {
   }, [messages]);
 
   useEffect(() => {
-    inputRef.current?.focus();
-
-    // Detect dark mode preference
     const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setIsDarkMode(darkModeQuery.matches);
 
@@ -198,7 +148,6 @@ export const App: React.FC = () => {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response with 1 second delay
     setTimeout(() => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -211,16 +160,8 @@ export const App: React.FC = () => {
     }, 1000);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   const handleClearChat = () => {
     setMessages([]);
-    inputRef.current?.focus();
   };
 
   return (
@@ -266,26 +207,13 @@ export const App: React.FC = () => {
           <div ref={chatEndRef} />
         </div>
 
-        <div className={`${styles.inputContainer} ${isDarkMode ? styles.inputContainerDark : styles.inputContainerLight}`}>
-          <Textarea
-            ref={inputRef}
-            className={styles.input}
-            value={inputValue}
-            onChange={(e, data) => setInputValue(data.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Type a message..."
-            rows={2}
-          />
-          <Tooltip content="Send message" relationship="label">
-            <Button
-              appearance="primary"
-              icon={<Send24Regular />}
-              onClick={handleSend}
-              disabled={!inputValue.trim()}
-              className={styles.sendButton}
-            />
-          </Tooltip>
-        </div>
+        <ChatInput
+          value={inputValue}
+          onChange={setInputValue}
+          onSend={handleSend}
+          isDarkMode={isDarkMode}
+          disabled={isTyping}
+        />
       </div>
     </FluentProvider>
   );
