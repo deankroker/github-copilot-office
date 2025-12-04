@@ -64,8 +64,12 @@
         updateStatus(true);
       };
       
-      ws.onmessage = (e) => {
-        appendLog(`← ${e.data}`, 'received');
+      ws.onmessage = async (e) => {
+        let text = e.data;
+        if (e.data instanceof Blob) {
+          text = await e.data.text();
+        }
+        appendLog(`← ${text}`, 'received');
       };
       
       ws.onerror = (e) => {
@@ -90,10 +94,12 @@
         appendLog('Not connected', 'error');
         return;
       }
-      const msg = input.value;
-      if (msg) {
+      const body = input.value;
+      if (body) {
+        // Wrap with Content-Length header for LSP framing
+        const msg = `Content-Length: ${new TextEncoder().encode(body).length}\r\n\r\n${body}`;
         ws.send(msg);
-        appendLog(`→ ${msg}`, 'sent');
+        appendLog(`→ ${body}`, 'sent');
         input.value = '';
       }
     }

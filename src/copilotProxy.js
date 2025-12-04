@@ -21,19 +21,15 @@ function setupCopilotProxy(httpsServer) {
   });
 
   wss.on('connection', (ws) => {
-    console.log('[WebSocket] Client connected, spawning child process: node', COPILOT_MODULE);
-    
-    const child = spawn(process.execPath, [COPILOT_MODULE], {
+    const child = spawn(process.execPath, [COPILOT_MODULE, '--server', '--stdio'], {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     child.on('error', (err) => {
-      console.error('[Child] Spawn error:', err.message);
       ws.close(1011, 'Child process error');
     });
 
     child.on('exit', (code, signal) => {
-      console.log(`[Child] Exited with code ${code}, signal ${signal}`);
       ws.close(1000, 'Child process exited');
     });
 
@@ -46,7 +42,6 @@ function setupCopilotProxy(httpsServer) {
 
     // Log child stderr
     child.stderr.on('data', (data) => {
-      console.error('[Child stderr]', data.toString());
     });
 
     // Proxy WebSocket -> child stdin
@@ -57,21 +52,17 @@ function setupCopilotProxy(httpsServer) {
     });
 
     ws.on('close', () => {
-      console.log('[WebSocket] Client disconnected, killing child process');
       if (!child.killed) {
         child.kill();
       }
     });
 
     ws.on('error', (err) => {
-      console.error('[WebSocket] Error:', err.message);
       if (!child.killed) {
         child.kill();
       }
     });
   });
-
-  console.log('WebSocket proxy configured at wss://localhost:3000/api/copilot');
 }
 
 module.exports = { setupCopilotProxy };
