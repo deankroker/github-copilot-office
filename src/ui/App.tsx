@@ -64,6 +64,14 @@ export const App: React.FC = () => {
             sender: "assistant",
             timestamp: new Date(event.timestamp),
           }]);
+        } else if (event.type === 'tool.execution_start') {
+          setMessages((prev) => [...prev, {
+            id: event.id,
+            text: JSON.stringify((event.data as any).arguments, null, 2),
+            sender: "tool",
+            toolName: (event.data as any).toolName,
+            timestamp: new Date(event.timestamp),
+          }]);
         }
       }
     } catch (e: any) {
