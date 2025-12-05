@@ -2,44 +2,25 @@ import { Tool } from "../../../copilot-sdk-nodejs/types";
 
 export const setDocumentContent: Tool = {
   name: "set_document_content",
-  description: "Replace the entire document body with new OOXML content. Pass the w:document element from get_document_content (modified as needed).",
+  description: "Replace the entire document body with new HTML content. Supports standard HTML tags like <p>, <h1>-<h6>, <ul>, <ol>, <li>, <table>, <b>, <i>, <u>, <a>, etc.",
   parameters: {
     type: "object",
     properties: {
-      ooxml: {
+      html: {
         type: "string",
-        description: "The w:document element with modifications.",
+        description: "The HTML content to set as the document body.",
       },
     },
-    required: ["ooxml"],
+    required: ["html"],
   },
   handler: async ({ arguments: args }) => {
-    const { ooxml } = args as { ooxml: string };
-    
-    if (!ooxml.trimStart().startsWith('<w:document')) {
-      return { 
-        textResultForLlm: "Invalid input: must start with <w:document>", 
-        resultType: "failure", 
-        error: "Invalid input: must start with <w:document>",
-        toolTelemetry: {} 
-      };
-    }
+    const { html } = args as { html: string };
     
     try {
       return await Word.run(async (context) => {
-        // Get full package to preserve styles
-        const fullOoxml = context.document.body.getOoxml();
-        await context.sync();
-        
-        // Replace w:document element in the full package
-        const newOoxml = fullOoxml.value.replace(
-          /<w:document[^>]*>[\s\S]*<\/w:document>/,
-          ooxml
-        );
-        
         const body = context.document.body;
         body.clear();
-        body.insertOoxml(newOoxml, Word.InsertLocation.start);
+        body.insertHtml(html, Word.InsertLocation.start);
         await context.sync();
         return "Document content replaced successfully.";
       });
