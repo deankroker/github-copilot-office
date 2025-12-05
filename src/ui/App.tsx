@@ -10,7 +10,7 @@ import { Message, MessageList } from "./components/MessageList";
 import { HeaderBar } from "./components/HeaderBar";
 import { useIsDarkMode } from "./useIsDarkMode";
 import { createWebSocketClient } from "../../copilot-sdk-nodejs/websocket-client";
-import { wordTools } from "./tools";
+import { getToolsForHost } from "./tools";
 import React from "react";
 
 const useStyles = makeStyles({
@@ -34,10 +34,12 @@ export const App: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
+        const host = Office.context.host;
+        const tools = getToolsForHost(host);
         const client = await createWebSocketClient(`wss://${location.host}/api/copilot`);
         setSession(await client.createSession({ 
           model: 'claude-haiku-4.5',
-          tools: wordTools,
+          tools,
         }));
       } catch (e: any) {
         setError(`Failed to connect: ${e.message}`);
