@@ -1,11 +1,22 @@
 {
   "name": "word-addin",
   "version": "1.0.0",
-  "description": "",
+  "description": "GitHub Copilot Office Add-in",
   "main": "index.js",
   "scripts": {
     "dev": "node src/server.js",
-    "build": "vite build"
+    "start": "node src/server-prod.js",
+    "build": "vite build",
+    "build:installer": "npm run build && npm run build:macos && npm run build:windows",
+    "build:macos": "./installer/macos/build.sh",
+    "build:windows": "./installer/windows/build.sh"
+  },
+  "pkg": {
+    "assets": [],
+    "scripts": [
+      "src/copilotProxy.js"
+    ],
+    "outputPath": "build"
   },
   "keywords": [],
   "author": "",
