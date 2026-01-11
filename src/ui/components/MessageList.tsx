@@ -17,6 +17,8 @@ interface MessageListProps {
   messages: Message[];
   isTyping: boolean;
   isConnecting?: boolean;
+  currentActivity?: string;
+  streamingText?: string;
 }
 
 const useStyles = makeStyles({
@@ -109,6 +111,8 @@ export const MessageList: React.FC<MessageListProps> = ({
   messages,
   isTyping,
   isConnecting,
+  currentActivity,
+  streamingText,
 }) => {
   const styles = useStyles();
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -116,7 +120,7 @@ export const MessageList: React.FC<MessageListProps> = ({
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, streamingText]);
 
   const toggleTool = (id: string) => {
     setExpandedTools(prev => {
@@ -187,7 +191,15 @@ export const MessageList: React.FC<MessageListProps> = ({
       {isTyping && (
         <div className={styles.messageAssistant}>
           <span style={{ color: '#8b5cf6', fontSize: '26px', lineHeight: '1', marginTop: '-5px' }}>●</span>
-          <span>Thinking...</span>
+          <div style={{ justifySelf: 'start' }}>
+            {streamingText ? (
+              <Markdown remarkPlugins={[remarkGfm]}>{streamingText}</Markdown>
+            ) : (
+              <span style={{ color: 'var(--colorNeutralForeground3)', fontStyle: 'italic' }}>
+                {currentActivity || "Thinking..."}
+              </span>
+            )}
+          </div>
         </div>
       )}
       

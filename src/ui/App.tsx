@@ -31,6 +31,8 @@ export const App: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [images, setImages] = useState<ImageAttachment[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [currentActivity, setCurrentActivity] = useState<string>("");
+  const [streamingText, setStreamingText] = useState<string>("");
   const [session, setSession] = useState<any>(null);
   const [client, setClient] = useState<any>(null);
   const [error, setError] = useState("");
@@ -42,6 +44,8 @@ export const App: React.FC = () => {
     setInputValue("");
     setImages([]);
     setIsTyping(false);
+    setCurrentActivity("");
+    setStreamingText("");
     setError("");
     
     try {
@@ -83,6 +87,8 @@ export const App: React.FC = () => {
     setInputValue("");
     setImages([]);
     setIsTyping(true);
+    setCurrentActivity("Processing...");
+    setStreamingText("");
     setError("");
 
     try {
@@ -121,7 +127,16 @@ export const App: React.FC = () => {
         attachments: attachments.length > 0 ? attachments : undefined
       })) {
         console.log('[event]', event.type, event);
-        if (event.type === 'assistant.message' && (event.data as any).content) {
+        
+        if (event.type === 'assistant.message.delta') {
+          // Streaming text chunk
+          const delta = (event.data as any).delta || (event.data as any).content || '';
+          setStreamingText(prev => prev + delta);
+          setCurrentActivity("");
+        } else if (event.type === 'assistant.message' && (event.data as any).content) {
+          // Complete message - add to messages and clear streaming
+          setStreamingText("");
+          setCurrentActivity("");
           setMessages((prev) => [...prev, {
             id: event.id,
             text: (event.data as any).content,
@@ -129,15 +144,24 @@ export const App: React.FC = () => {
             timestamp: new Date(event.timestamp),
           }]);
         } else if (event.type === 'tool.execution_start') {
+          const toolName = (event.data as any).toolName;
+          setCurrentActivity(`Calling ${toolName}...`);
           setMessages((prev) => [...prev, {
             id: event.id,
             text: JSON.stringify((event.data as any).arguments, null, 2),
             sender: "tool",
-            toolName: (event.data as any).toolName,
+            toolName: toolName,
             timestamp: new Date(event.timestamp),
           }]);
+        } else if (event.type === 'tool.execution_end') {
+          setCurrentActivity("Processing result...");
+        } else if (event.type === 'assistant.thinking') {
+          setCurrentActivity("Thinking...");
+        } else if (event.type === 'assistant.turn_start') {
+          setCurrentActivity("Starting response...");
         } else if (event.type === 'assistant.turn_end') {
-          // Log what stopReason we got
+          setCurrentActivity("");
+          setStreamingText("");
           console.log('[turn_end]', (event.data as any).stopReason);
         }
       }
@@ -162,6 +186,8 @@ export const App: React.FC = () => {
           messages={messages}
           isTyping={isTyping}
           isConnecting={!session && !error}
+          currentActivity={currentActivity}
+          streamingText={streamingText}
         />
 
         {error && <div style={{ color: 'red', padding: '8px' }}>{error}</div>}
