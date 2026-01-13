@@ -72,11 +72,15 @@ PptxGenJS API Examples:
         type: "string",
         description: "JavaScript code (function body) that receives a 'slide' parameter and calls PptxGenJS methods to build the slide content.",
       },
+      replaceSlideIndex: {
+        type: "number",
+        description: "Optional 0-based index of an existing slide to replace. If provided, the slide at this index will be deleted and the new slide inserted in its place. If not provided, the new slide is appended at the end.",
+      },
     },
     required: ["code"],
   },
   handler: async ({ arguments: args }) => {
-    const { code } = args as { code: string };
+    const { code, replaceSlideIndex } = args as { code: string; replaceSlideIndex?: number };
 
     try {
       // Create presentation and slide
@@ -109,27 +113,61 @@ PptxGenJS API Examples:
         };
       }
 
-      // Insert into PowerPoint after the last slide
+      // Insert into PowerPoint (replace existing or append)
       try {
         await PowerPoint.run(async (context) => {
           const slides = context.presentation.slides;
           slides.load("items");
           await context.sync();
 
+          const slideCount = slides.items.length;
+
+          // Validate replaceSlideIndex if provided
+          if (replaceSlideIndex !== undefined) {
+            if (replaceSlideIndex < 0 || replaceSlideIndex >= slideCount) {
+              throw new Error(`Invalid replaceSlideIndex ${replaceSlideIndex}. Must be 0-${slideCount - 1} (current slide count: ${slideCount})`);
+            }
+          }
+
           const insertOptions: PowerPoint.InsertSlideOptions = {
             formatting: PowerPoint.InsertSlideFormatting.useDestinationTheme,
           };
 
-          // If there are existing slides, insert after the last one
-          if (slides.items.length > 0) {
-            const lastSlide = slides.items[slides.items.length - 1];
-            lastSlide.load("id");
-            await context.sync();
-            insertOptions.targetSlideId = lastSlide.id;
-          }
+          if (replaceSlideIndex !== undefined) {
+            // Insert before the slide we're replacing, then delete the old one
+            if (replaceSlideIndex > 0) {
+              const prevSlide = slides.items[replaceSlideIndex - 1];
+              prevSlide.load("id");
+              await context.sync();
+              insertOptions.targetSlideId = prevSlide.id;
+            }
+            // If replaceSlideIndex is 0, don't set targetSlideId (insert at beginning)
 
-          context.presentation.insertSlidesFromBase64(base64, insertOptions);
-          await context.sync();
+            context.presentation.insertSlidesFromBase64(base64, insertOptions);
+            await context.sync();
+
+            // Reload slides to get the updated list
+            slides.load("items");
+            await context.sync();
+
+            // Delete the old slide (now at replaceSlideIndex + 1 since we inserted before it)
+            const oldSlideIndex = replaceSlideIndex + 1;
+            if (oldSlideIndex < slides.items.length) {
+              slides.items[oldSlideIndex].delete();
+              await context.sync();
+            }
+          } else {
+            // Append at the end (original behavior)
+            if (slides.items.length > 0) {
+              const lastSlide = slides.items[slides.items.length - 1];
+              lastSlide.load("id");
+              await context.sync();
+              insertOptions.targetSlideId = lastSlide.id;
+            }
+
+            context.presentation.insertSlidesFromBase64(base64, insertOptions);
+            await context.sync();
+          }
         });
       } catch (insertError: any) {
         return {
@@ -140,7 +178,9 @@ PptxGenJS API Examples:
         };
       }
 
-      return "Successfully added new slide to the presentation.";
+      return replaceSlideIndex !== undefined 
+        ? `Successfully replaced slide ${replaceSlideIndex + 1} in the presentation.`
+        : "Successfully added new slide to the presentation.";
     } catch (e: any) {
       return {
         textResultForLlm: `Unexpected error: ${e.message}\n\nStack: ${e.stack}`,

@@ -2,11 +2,11 @@
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MANIFEST_PATH="$SCRIPT_DIR/manifest.xml"
+MANIFEST_PATH="$SCRIPT_DIR/manifest-prod.xml"
 CERT_PATH="$SCRIPT_DIR/certs/localhost.pem"
 
-echo -e "\033[36mSetting up Office Add-in (DEVELOPMENT) for macOS...\033[0m"
-echo -e "\033[33mThis registers the add-in on port 3000 (for local dev server)\033[0m"
+echo -e "\033[36mSetting up Office Add-in (PRODUCTION) for macOS...\033[0m"
+echo -e "\033[33mThis registers the add-in on port 52390 (for installed version)\033[0m"
 echo ""
 
 # Step 1: Trust the SSL certificate
@@ -29,8 +29,8 @@ fi
 
 echo ""
 
-# Step 2: Register manifest for Word, PowerPoint, and Excel
-echo -e "\033[33mStep 2: Registering add-in manifest...\033[0m"
+# Step 2: Register manifest for Word, PowerPoint, Excel, and OneNote
+echo -e "\033[33mStep 2: Registering add-in manifest (production)...\033[0m"
 echo "  Manifest: $MANIFEST_PATH"
 
 # Create directories for Word, PowerPoint, Excel, and OneNote if they don't exist
@@ -44,11 +44,11 @@ mkdir -p "$POWERPOINT_WEF_DIR"
 mkdir -p "$EXCEL_WEF_DIR"
 mkdir -p "$ONENOTE_WEF_DIR"
 
-# Copy manifest to all directories
-cp "$MANIFEST_PATH" "$WORD_WEF_DIR/"
-cp "$MANIFEST_PATH" "$POWERPOINT_WEF_DIR/"
-cp "$MANIFEST_PATH" "$EXCEL_WEF_DIR/"
-cp "$MANIFEST_PATH" "$ONENOTE_WEF_DIR/"
+# Copy manifest to all directories (renamed to manifest.xml)
+cp "$MANIFEST_PATH" "$WORD_WEF_DIR/manifest.xml"
+cp "$MANIFEST_PATH" "$POWERPOINT_WEF_DIR/manifest.xml"
+cp "$MANIFEST_PATH" "$EXCEL_WEF_DIR/manifest.xml"
+cp "$MANIFEST_PATH" "$ONENOTE_WEF_DIR/manifest.xml"
 
 echo -e "  \033[32m✓ Add-in registered for Word\033[0m"
 echo -e "  \033[32m✓ Add-in registered for PowerPoint\033[0m"
@@ -58,9 +58,9 @@ echo ""
 
 echo -e "\033[36mSetup complete! Next steps:\033[0m"
 echo "1. Close Word, PowerPoint, Excel, and OneNote if they are open"
-echo "2. Start the dev server: npm run dev"
+echo "2. Start the production server: npm run start"
 echo "3. Open Word, PowerPoint, Excel, or OneNote"
-echo "4. Look for 'Copilot Agent' button on the Home ribbon"
+echo "4. Look for 'GitHub Copilot' button on the Home ribbon"
 echo ""
-echo -e "\033[90mNote: This uses port 3000. For production (port 52390), use ./register-prod.sh\033[0m"
+echo -e "\033[90mNote: This uses port 52390. For development (port 3000), use ./register.sh\033[0m"
 echo -e "\033[90mTo unregister, run: ./unregister.sh\033[0m"

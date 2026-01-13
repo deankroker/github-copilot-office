@@ -5,6 +5,8 @@ import { webFetch } from "./webFetch";
 import { getPresentationContent } from "./getPresentationContent";
 import { setPresentationContent } from "./setPresentationContent";
 import { addSlideFromCode } from "./addSlideFromCode";
+import { clearSlide } from "./clearSlide";
+import { updateSlideShape } from "./updateSlideShape";
 import { getWorkbookContent } from "./getWorkbookContent";
 import { setWorkbookContent } from "./setWorkbookContent";
 import { getSelectedRange } from "./getSelectedRange";
@@ -22,6 +24,8 @@ export const powerpointTools = [
   getPresentationContent,
   setPresentationContent,
   addSlideFromCode,
+  clearSlide,
+  updateSlideShape,
   webFetch,
 ];
 
