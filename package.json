@@ -90,7 +90,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "@yao-pkg/pkg": "^6.11.0",
-    "electron": "^33.4.11",
+    "electron": "^39.2.7",
     "electron-builder": "^25.1.8",
     "html-webpack-plugin": "^5.6.5",
     "sharp": "^0.34.5",

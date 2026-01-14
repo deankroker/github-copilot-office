@@ -1,9 +1,45 @@
 const { WebSocketServer } = require('ws');
 const { spawn } = require('child_process');
 const path = require('path');
+const { pathToFileURL } = require('url');
 
 // Resolve the @github/copilot bin entry point
 const COPILOT_MODULE = path.resolve(__dirname, '../node_modules/@github/copilot/index.js');
+const COPILOT_MODULE_URL = pathToFileURL(COPILOT_MODULE).href;
+
+// Check if running in Electron
+const isElectron = !!(process.versions && process.versions.electron);
+
+/**
+ * Spawn the Copilot CLI process.
+ * 
+ * When running under Electron with ELECTRON_RUN_AS_NODE, we need to use a special
+ * approach: the Copilot CLI expects process.argv to NOT include a script path
+ * (it treats argv[1] as a positional argument if it doesn't start with -).
+ * 
+ * So instead of: electron.exe copilot.js --server --stdio
+ * We use: electron.exe -e "inline code that sets argv and imports copilot"
+ */
+function spawnCopilotProcess() {
+  if (isElectron) {
+    // Create inline code that:
+    // 1. Sets process.argv to what the CLI expects (no script path)
+    // 2. Dynamically imports the copilot module
+    const wrapperCode = `
+      process.argv = [process.argv[0], '--server', '--stdio'];
+      import('${COPILOT_MODULE_URL}');
+    `;
+    
+    return spawn(process.execPath, ['--input-type=module', '-e', wrapperCode], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+    });
+  } else {
+    return spawn(process.execPath, [COPILOT_MODULE, '--server', '--stdio'], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+  }
+}
 
 function setupCopilotProxy(httpsServer) {
   const wss = new WebSocketServer({ noServer: true });
@@ -28,9 +64,7 @@ function setupCopilotProxy(httpsServer) {
   };
 
   wss.on('connection', (ws) => {
-    const child = spawn(process.execPath, [COPILOT_MODULE, '--server', '--stdio'], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
+    const child = spawnCopilotProcess();
 
     child.on('error', () => {
       ws.close(1011, 'Child process error');
