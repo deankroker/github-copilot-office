@@ -48,13 +48,17 @@ You should see the GitHub Copilot icon appear in your system tray (Windows) or m
 
 1. **Open** Word, PowerPoint, or Excel
 2. **Close and reopen** the app if it was already running before registration
-3. Look for the **GitHub Copilot** button on the **Home** ribbon
+3. Go to **Insert** → **Add-ins** → **My Add-ins**
+<img width="459" height="324" alt="image" src="https://github.com/user-attachments/assets/fc157744-a0a0-4975-86d1-380736e2bb12" />
 
-### If the button doesn't appear automatically
+4. Look for the **GitHub Copilot** add-in. Write text or paste images to get started.
+<img width="358" height="352" alt="image" src="https://github.com/user-attachments/assets/e06d89a5-5fa8-4940-92b6-e60b04c1e5c7" />
 
-1. Go to **Insert** → **Add-ins** → **My Add-ins**
-2. Look under **Developer Add-ins** or **Shared Folder**
-3. Select **GitHub Copilot** and click **Add**
+5. Have fun!
+
+
+https://github.com/user-attachments/assets/5bb771d3-0bf6-4b7b-8e6c-757a085b3131
+
 
 ## Troubleshooting
 
