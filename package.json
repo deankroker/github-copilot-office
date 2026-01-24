@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node src/server.js",
     "start": "node src/server-prod.js",
-    "start:tray": "electron .",
+    "start:tray": "npm install --silent && npm run build && electron .",
     "build": "vite build",
     "build:icons": "node scripts/generate-icons.js",
     "build:installer": "npm run clean:extraneous && npm run build && electron-builder",

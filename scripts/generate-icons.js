@@ -112,24 +112,21 @@ async function generateIcons() {
   console.log('\nGenerating tray icons...');
   try {
     // macOS tray icons should be 16x16 and 32x32 (for @2x)
-    // Template images should be black with alpha for proper menu bar appearance
-    const trayIcon16 = path.join(assetsDir, 'tray-iconTemplate.png');
-    const trayIcon32 = path.join(assetsDir, 'tray-iconTemplate@2x.png');
+    // Color icons (not Template) for full color appearance
+    const trayIcon16 = path.join(assetsDir, 'tray-icon.png');
+    const trayIcon32 = path.join(assetsDir, 'tray-icon@2x.png');
     
-    // For template icons, we need to convert to grayscale/black
     await sharp(inputFile)
       .resize(16, 16, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .grayscale()
       .png()
       .toFile(trayIcon16);
-    console.log(`  ✓ tray-iconTemplate.png`);
+    console.log(`  ✓ tray-icon.png`);
 
     await sharp(inputFile)
       .resize(32, 32, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .grayscale()
       .png()
       .toFile(trayIcon32);
-    console.log(`  ✓ tray-iconTemplate@2x.png`);
+    console.log(`  ✓ tray-icon@2x.png`);
   } catch (err) {
     console.log(`  ⚠ Could not generate tray icons: ${err.message}`);
   }

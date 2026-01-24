@@ -33,8 +33,8 @@ function getIconPath() {
   const resourcesPath = getResourcesPath();
   
   if (process.platform === 'darwin') {
-    // macOS: use Template image for proper menu bar appearance
-    return path.join(resourcesPath, 'assets', 'tray-iconTemplate.png');
+    // macOS: use color PNG for menu bar
+    return path.join(resourcesPath, 'assets', 'tray-icon.png');
   } else {
     // Windows: use .ico
     return path.join(resourcesPath, 'assets', 'tray-icon.ico');
@@ -135,7 +135,7 @@ function createTray() {
     // For macOS menu bar, resize to 16x16 or 22x22
     if (process.platform === 'darwin') {
       icon = icon.resize({ width: 16, height: 16 });
-      icon.setTemplateImage(true);
+      icon.setTemplateImage(false);  // Use color icon, not monochrome template
     }
   } catch (error) {
     console.error('Failed to load tray icon:', error);
