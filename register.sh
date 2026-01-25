@@ -2,11 +2,29 @@
 
 # Get the directory where the script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MANIFEST_PATH="$SCRIPT_DIR/manifest.xml"
-CERT_PATH="$SCRIPT_DIR/certs/localhost.pem"
+APP_PATH="$SCRIPT_DIR/GitHub Copilot Office Add-in.app"
+
+# Check if running from release (app bundle exists) or dev (manifest in root)
+if [ -d "$APP_PATH" ]; then
+    # Release mode: certs and manifest are inside the app bundle
+    MANIFEST_PATH="$APP_PATH/Contents/Resources/manifest.xml"
+    CERT_PATH="$APP_PATH/Contents/Resources/certs/localhost.pem"
+else
+    # Dev mode: certs and manifest are in the repo root
+    MANIFEST_PATH="$SCRIPT_DIR/manifest.xml"
+    CERT_PATH="$SCRIPT_DIR/certs/localhost.pem"
+fi
 
 echo -e "\033[36mSetting up Office Add-in for macOS...\033[0m"
 echo ""
+
+# Step 0: Remove quarantine attribute if app exists (for downloaded releases)
+if [ -d "$APP_PATH" ]; then
+    echo -e "\033[33mStep 0: Removing quarantine attribute from app...\033[0m"
+    xattr -cr "$APP_PATH" 2>/dev/null
+    echo -e "  \033[32m✓ Quarantine attribute removed\033[0m"
+    echo ""
+fi
 
 # Step 1: Trust the SSL certificate
 echo -e "\033[33mStep 1: Trusting development SSL certificate...\033[0m"

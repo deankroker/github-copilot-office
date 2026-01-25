@@ -98,7 +98,8 @@ if (fs.existsSync(zipPath)) {
 console.log(`Creating ${zipName}...`);
 
 if (platform === 'darwin') {
-  execSync(`cd "${buildDir}" && zip -r -y "${zipPath}" .`, { stdio: 'inherit' });
+  // Use ditto to create a proper macOS zip that preserves symlinks and resource forks
+  execSync(`ditto -c -k --sequesterRsrc "${buildDir}" "${zipPath}"`, { stdio: 'inherit' });
 } else if (platform === 'win32') {
   execSync(
     `powershell -Command "Compress-Archive -Path '${buildDir}\\*' -DestinationPath '${zipPath}' -Force"`,
