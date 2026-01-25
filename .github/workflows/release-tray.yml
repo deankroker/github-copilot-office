@@ -75,6 +75,21 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create source zip (excluding private files)
+        run: |
+          zip -r artifacts/copilot-office-addin-source-v${{ github.event.inputs.version }}.zip . \
+            -x ".github/*" \
+            -x "package-lock.json" \
+            -x "node_modules/*" \
+            -x "build/*" \
+            -x "dist/*" \
+            -x ".git/*" \
+            -x ".DS_Store" \
+            -x "*.zip"
+          
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
@@ -107,6 +122,9 @@ jobs:
             3. Open Word, PowerPoint, or Excel → **Insert** → **Add-ins** → **My Add-ins** → **GitHub Copilot**
             
             See `GETTING_STARTED.md` for detailed instructions.
+            
+            ### Source Code
+            The source zip excludes CI workflows and lock files. Run `npm install` to install dependencies.
           files: artifacts/*.zip
           draft: false
           prerelease: false
