@@ -6,6 +6,8 @@ A Microsoft Office add-in that integrates GitHub Copilot into Word, Excel, and P
 
 **👉 See [GETTING_STARTED.md](GETTING_STARTED.md) for setup instructions.**
 
+**📖 See [TOOLS_CATALOG.md](TOOLS_CATALOG.md) for available Copilot tools.**
+
 The getting started guide walks you through running the add-in locally using the tray app. Standalone installers are in development and will be available once code signing is complete.
 
 ## Office Videos

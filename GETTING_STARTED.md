@@ -2,6 +2,8 @@
 
 Run the GitHub Copilot Office Add-in locally using the tray app—no installers required.
 
+> **📖 See [TOOLS_CATALOG.md](TOOLS_CATALOG.md) for a complete list of available Copilot tools for Word, PowerPoint, and Excel.**
+
 ## Prerequisites
 
 Install the following software:
