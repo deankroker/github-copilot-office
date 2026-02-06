@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Button, Tooltip, makeStyles, Dropdown, Option } from "@fluentui/react-components";
-import { Compose24Regular, History24Regular } from "@fluentui/react-icons";
+import { Compose24Regular, History24Regular, Server24Regular } from "@fluentui/react-icons";
 
 export type ModelType = "gpt-5" | "claude-sonnet-4" | "claude-sonnet-4.5" | "claude-opus-4.5" | "claude-haiku-4.5";
 
@@ -15,8 +15,10 @@ const MODELS: { key: ModelType; label: string }[] = [
 interface HeaderBarProps {
   onNewChat: () => void;
   onShowHistory: () => void;
+  onShowMcp: () => void;
   selectedModel: ModelType;
   onModelChange: (model: ModelType) => void;
+  mcpToolCount?: number;
 }
 
 const useStyles = makeStyles({
@@ -76,7 +78,7 @@ const useStyles = makeStyles({
   },
 });
 
-export const HeaderBar: React.FC<HeaderBarProps> = ({ onNewChat, onShowHistory, selectedModel, onModelChange }) => {
+export const HeaderBar: React.FC<HeaderBarProps> = ({ onNewChat, onShowHistory, onShowMcp, selectedModel, onModelChange, mcpToolCount = 0 }) => {
   const styles = useStyles();
   const selectedLabel = MODELS.find(m => m.key === selectedModel)?.label || selectedModel;
 
@@ -100,6 +102,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ onNewChat, onShowHistory, 
         ))}
       </Dropdown>
       <div className={styles.buttonGroup}>
+        <Tooltip content={mcpToolCount > 0 ? `MCP Servers (${mcpToolCount} tools)` : "MCP Servers"} relationship="label">
+          <Button
+            icon={<Server24Regular />}
+            appearance="subtle"
+            onClick={onShowMcp}
+            aria-label="MCP Servers"
+            className={styles.historyButton}
+          />
+        </Tooltip>
         <Tooltip content="History" relationship="label">
           <Button
             icon={<History24Regular />}

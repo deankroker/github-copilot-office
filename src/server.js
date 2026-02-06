@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { setupCopilotProxy } = require('./copilotProxy');
+const { setupMcpRoutes } = require('./mcp/routes');
 
 async function createServer() {
   const app = express();
@@ -90,6 +91,9 @@ async function createServer() {
       res.status(500).json({ error: e.message });
     }
   });
+
+  // MCP server management routes
+  setupMcpRoutes(apiRouter);
 
   app.use('/api', apiRouter);
 

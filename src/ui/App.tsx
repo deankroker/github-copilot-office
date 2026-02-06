@@ -9,6 +9,7 @@ import { ChatInput, ImageAttachment } from "./components/ChatInput";
 import { Message, MessageList } from "./components/MessageList";
 import { HeaderBar, ModelType } from "./components/HeaderBar";
 import { SessionHistory } from "./components/SessionHistory";
+import { McpPanel } from "./components/McpPanel";
 import { useIsDarkMode } from "./useIsDarkMode";
 import { useLocalStorage } from "./useLocalStorage";
 import { createWebSocketClient } from "./lib/websocket-client";
@@ -46,12 +47,30 @@ export const App: React.FC = () => {
   const [error, setError] = useState("");
   const [selectedModel, setSelectedModel] = useLocalStorage<ModelType>("word-addin-selected-model", DEFAULT_MODEL);
   const [showHistory, setShowHistory] = useState(false);
+  const [showMcp, setShowMcp] = useState(false);
+  const [mcpTools, setMcpTools] = useState<any[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string>("");
   const [officeHost, setOfficeHost] = useState<OfficeHost>("word");
   const isDarkMode = useIsDarkMode();
   
   // Track session creation time
   const sessionCreatedAt = useRef<string>("");
+
+  // Fetch MCP tools from connected servers
+  const fetchMcpTools = async () => {
+    try {
+      const res = await fetch("/api/mcp/tools");
+      const data = await res.json();
+      setMcpTools(data.tools || []);
+      return data.tools || [];
+    } catch {
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchMcpTools();
+  }, []);
 
   // Save session whenever messages change (debounced effect)
   useEffect(() => {
@@ -87,22 +106,68 @@ export const App: React.FC = () => {
     setStreamingText("");
     setError("");
     setShowHistory(false);
-    
+    setShowMcp(false);
+
     try {
       if (client) {
         await client.stop();
       }
       const host = Office.context.host;
       setOfficeHost(getHostFromOfficeHost(host));
-      const tools = getToolsForHost(host);
+      const officeTools = getToolsForHost(host);
+
+      // Fetch current MCP tools and create handlers that proxy to server
+      const currentMcpTools = await fetchMcpTools();
+      const mcpToolDefs = currentMcpTools.map((t: any) => ({
+        name: t.prefixedName,
+        description: t.description || t.name,
+        parameters: t.inputSchema || { type: "object", properties: {} },
+        handler: async (params: any) => {
+          try {
+            const res = await fetch("/api/mcp/call", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ toolName: t.prefixedName, arguments: params.arguments }),
+            });
+            const data = await res.json();
+            if (data.error) {
+              return { textResultForLlm: `Error: ${data.error}`, resultType: "failure", error: data.error, toolTelemetry: {} };
+            }
+            // MCP tools return { content: [{ type, text }] }
+            const text = data.result?.content?.map((c: any) => c.text || JSON.stringify(c)).join("\n") || JSON.stringify(data.result);
+            return { textResultForLlm: text, resultType: "success", toolTelemetry: {} };
+          } catch (e: any) {
+            return { textResultForLlm: `Error: ${e.message}`, resultType: "failure", error: e.message, toolTelemetry: {} };
+          }
+        },
+      }));
+
+      console.log(`[session] ${officeTools.length} Office tools + ${mcpToolDefs.length} MCP tools`, mcpToolDefs.map(t => t.name));
+
+      const tools = [...officeTools, ...mcpToolDefs];
       const newClient = await createWebSocketClient(`wss://${location.host}/api/copilot`);
       setClient(newClient);
-      
+
       // Build host-specific system message
-      const hostName = host === Office.HostType.PowerPoint ? "PowerPoint" 
-        : host === Office.HostType.Word ? "Word" 
-        : host === Office.HostType.Excel ? "Excel" 
+      const hostName = host === Office.HostType.PowerPoint ? "PowerPoint"
+        : host === Office.HostType.Word ? "Word"
+        : host === Office.HostType.Excel ? "Excel"
         : "Office";
+
+      // Build MCP tools system message section grouped by server
+      let mcpToolsSection = '';
+      if (mcpToolDefs.length > 0) {
+        const toolsByServer: Record<string, string[]> = {};
+        for (const t of currentMcpTools) {
+          const sid = t.serverId || 'unknown';
+          if (!toolsByServer[sid]) toolsByServer[sid] = [];
+          toolsByServer[sid].push(`- ${t.prefixedName}: ${t.description || t.name}`);
+        }
+        mcpToolsSection = `\n\nYou also have access to external MCP tools. Use them when the user asks about resources or capabilities beyond the ${hostName} document.\n\n`;
+        for (const [sid, descs] of Object.entries(toolsByServer)) {
+          mcpToolsSection += `MCP Server "${sid}":\n${descs.join('\n')}\n\n`;
+        }
+      }
       
       const systemMessage = {
         mode: "append" as const,
@@ -126,7 +191,7 @@ ${host === Office.HostType.Excel ? `For Excel:
 - Use get_workbook_content to read cell data
 - The workbook is already open - just call the tools directly` : ''}
 
-Always use your tools to interact with the document. Never ask users to save, export, or provide file paths.`
+Always use your tools to interact with the document. Never ask users to save, export, or provide file paths.${mcpToolsSection}`
       };
       
       setSession(await newClient.createSession({ model, tools, systemMessage }));
@@ -256,6 +321,18 @@ Always use your tools to interact with the document. Never ask users to save, ex
     }
   };
 
+  // Show MCP panel
+  if (showMcp) {
+    return (
+      <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
+        <McpPanel
+          onClose={() => setShowMcp(false)}
+          onToolsChanged={() => fetchMcpTools()}
+        />
+      </FluentProvider>
+    );
+  }
+
   // Show history panel
   if (showHistory) {
     return (
@@ -272,11 +349,13 @@ Always use your tools to interact with the document. Never ask users to save, ex
   return (
     <FluentProvider theme={isDarkMode ? webDarkTheme : webLightTheme}>
       <div className={styles.container}>
-        <HeaderBar 
-          onNewChat={() => startNewSession(selectedModel)} 
+        <HeaderBar
+          onNewChat={() => startNewSession(selectedModel)}
           onShowHistory={() => setShowHistory(true)}
+          onShowMcp={() => setShowMcp(true)}
           selectedModel={selectedModel}
           onModelChange={handleModelChange}
+          mcpToolCount={mcpTools.length}
         />
 
         <MessageList

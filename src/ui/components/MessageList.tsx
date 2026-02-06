@@ -265,7 +265,7 @@ export const MessageList: React.FC<MessageListProps> = ({
     <div className={styles.chatContainer}>
       {messages.length === 0 && !isConnecting && (
         <div className={styles.emptyState}>
-          What can I do for you?
+          Hello! How can I help you?
         </div>
       )}
 
