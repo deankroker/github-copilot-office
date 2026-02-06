@@ -9,6 +9,7 @@ const fs = require('fs');
 const os = require('os');
 const { setupCopilotProxy } = require('./copilotProxy');
 const { setupMcpRoutes } = require('./mcp/routes');
+const { setupTemplateRoutes } = require('./templates/routes');
 
 // Determine if we're running from pkg bundle
 const isPkg = typeof process.pkg !== 'undefined';
@@ -108,6 +109,9 @@ async function createServer() {
 
   // MCP server management routes
   setupMcpRoutes(apiRouter);
+
+  // Template routes
+  setupTemplateRoutes(apiRouter);
 
   app.use('/api', apiRouter);
 

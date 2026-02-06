@@ -1,12 +1,18 @@
 import * as React from "react";
 import { useRef, useEffect } from "react";
 import { Textarea, Button, Tooltip, makeStyles } from "@fluentui/react-components";
-import { Send24Regular, Dismiss24Regular } from "@fluentui/react-icons";
+import { Send24Regular, Dismiss24Regular, Dismiss12Regular } from "@fluentui/react-icons";
 
 export interface ImageAttachment {
   id: string;
   dataUrl: string;
   name: string;
+}
+
+export interface ActiveTemplate {
+  id: string;
+  name: string;
+  icon: string;
 }
 
 interface ChatInputProps {
@@ -17,6 +23,8 @@ interface ChatInputProps {
   disabled?: boolean;
   images?: ImageAttachment[];
   onImagesChange?: (images: ImageAttachment[]) => void;
+  activeTemplate?: ActiveTemplate | null;
+  onClearTemplate?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -86,6 +94,46 @@ const useStyles = makeStyles({
       backgroundColor: "var(--colorNeutralBackground1Hover)",
     },
   },
+  templateTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "2px 8px",
+    margin: "4px 4px 0",
+    borderRadius: "12px",
+    backgroundColor: "var(--colorBrandBackground2)",
+    color: "var(--colorBrandForeground2)",
+    fontSize: "12px",
+    lineHeight: "20px",
+    maxWidth: "fit-content",
+  },
+  templateTagIcon: {
+    fontSize: "12px",
+  },
+  templateTagName: {
+    fontWeight: "500",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "180px",
+  },
+  templateTagDismiss: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "16px",
+    width: "16px",
+    height: "16px",
+    padding: "0",
+    border: "none",
+    borderRadius: "50%",
+    backgroundColor: "transparent",
+    color: "var(--colorBrandForeground2)",
+    cursor: "pointer",
+    ":hover": {
+      backgroundColor: "var(--colorBrandBackground2Hover)",
+    },
+  },
 });
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -94,6 +142,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   images = [],
   onImagesChange,
+  activeTemplate,
+  onClearTemplate,
 }) => {
   const styles = useStyles();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -146,6 +196,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className={styles.inputContainer}>
+      {activeTemplate && (
+        <div className={styles.templateTag}>
+          <span className={styles.templateTagIcon}>{activeTemplate.icon}</span>
+          <span className={styles.templateTagName}>{activeTemplate.name}</span>
+          <button
+            className={styles.templateTagDismiss}
+            onClick={onClearTemplate}
+            title="Remove template"
+          >
+            <Dismiss12Regular />
+          </button>
+        </div>
+      )}
       {images.length > 0 && (
         <div className={styles.imagePreviewContainer}>
           {images.map(image => (

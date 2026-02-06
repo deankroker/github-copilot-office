@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Button, Tooltip, makeStyles, Dropdown, Option } from "@fluentui/react-components";
-import { Compose24Regular, History24Regular, Server24Regular } from "@fluentui/react-icons";
+import { Compose24Regular, History24Regular, Server24Regular, DocumentBulletList24Regular } from "@fluentui/react-icons";
 
 export type ModelType = "gpt-5" | "claude-sonnet-4" | "claude-sonnet-4.5" | "claude-opus-4.5" | "claude-haiku-4.5";
 
@@ -16,6 +16,7 @@ interface HeaderBarProps {
   onNewChat: () => void;
   onShowHistory: () => void;
   onShowMcp: () => void;
+  onShowTemplates: () => void;
   selectedModel: ModelType;
   onModelChange: (model: ModelType) => void;
   mcpToolCount?: number;
@@ -78,7 +79,7 @@ const useStyles = makeStyles({
   },
 });
 
-export const HeaderBar: React.FC<HeaderBarProps> = ({ onNewChat, onShowHistory, onShowMcp, selectedModel, onModelChange, mcpToolCount = 0 }) => {
+export const HeaderBar: React.FC<HeaderBarProps> = ({ onNewChat, onShowHistory, onShowMcp, onShowTemplates, selectedModel, onModelChange, mcpToolCount = 0 }) => {
   const styles = useStyles();
   const selectedLabel = MODELS.find(m => m.key === selectedModel)?.label || selectedModel;
 
@@ -102,6 +103,15 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({ onNewChat, onShowHistory, 
         ))}
       </Dropdown>
       <div className={styles.buttonGroup}>
+        <Tooltip content="Templates" relationship="label">
+          <Button
+            icon={<DocumentBulletList24Regular />}
+            appearance="subtle"
+            onClick={onShowTemplates}
+            aria-label="Templates"
+            className={styles.historyButton}
+          />
+        </Tooltip>
         <Tooltip content={mcpToolCount > 0 ? `MCP Servers (${mcpToolCount} tools)` : "MCP Servers"} relationship="label">
           <Button
             icon={<Server24Regular />}
