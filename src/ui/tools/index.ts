@@ -15,10 +15,31 @@ import { getSelectedRange } from "./getSelectedRange";
 import { setSelectedRange } from "./setSelectedRange";
 import { getWorkbookInfo } from "./getWorkbookInfo";
 
+// New Word tools
+import { getDocumentOverview } from "./getDocumentOverview";
+import { getSelectionText } from "./getSelectionText";
+import { insertContentAtSelection } from "./insertContentAtSelection";
+import { findAndReplace } from "./findAndReplace";
+import { getDocumentSection } from "./getDocumentSection";
+import { insertTable } from "./insertTable";
+import { applyStyleToSelection } from "./applyStyleToSelection";
+
+// New PowerPoint tools
+import { getSlideNotes } from "./getSlideNotes";
+import { setSlideNotes } from "./setSlideNotes";
+import { duplicateSlide } from "./duplicateSlide";
+
 export const wordTools = [
+  getDocumentOverview,
   getDocumentContent,
+  getDocumentSection,
   setDocumentContent,
   getSelection,
+  getSelectionText,
+  insertContentAtSelection,
+  findAndReplace,
+  insertTable,
+  applyStyleToSelection,
   webFetch,
 ];
 
@@ -26,10 +47,13 @@ export const powerpointTools = [
   getPresentationOverview,
   getPresentationContent,
   getSlideImage,
+  getSlideNotes,
   setPresentationContent,
   addSlideFromCode,
   clearSlide,
   updateSlideShape,
+  setSlideNotes,
+  duplicateSlide,
   webFetch,
 ];
 
