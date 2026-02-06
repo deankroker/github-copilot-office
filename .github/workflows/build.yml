@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build installer
         run: npm run clean:extraneous && npm run build && npx electron-builder --mac --${{ matrix.arch }}
@@ -58,7 +58,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Build installer
         run: npm run build:installer:win
